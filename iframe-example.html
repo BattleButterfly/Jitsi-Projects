@@ -142,7 +142,7 @@
             this.isStreamOn = false;
          }
     };
-
+        //This part doesn't work without making some changes to the code as per this; https://github.com/team-ai-repo/jitsi-meet/pull/4/files
     api.addEventListener("recordingStarted", () => {
         document.getElementById("stream-btn").innerHTML="Stop Streaming";
         document.getElementById("streamingResponseMsg").innerHTML = "Stream is on";
