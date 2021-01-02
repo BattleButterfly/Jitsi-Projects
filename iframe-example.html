@@ -1,0 +1,164 @@
+<html itemscope itemtype="http://schema.org/Product" prefix="og: http://ogp.me/ns#" xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        .row {
+            width: 1350px;
+        }
+
+        /* Create two unequal columns that floats next to each other */
+        .column {
+            float: left;
+            padding: 10px;
+            height: 480px;
+            /* Should be removed. Only for demonstration */
+        }
+
+        .left {
+            width: 70%;
+        }
+
+        .right {
+            width: 30%;
+            vertical-align: middle;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .btn-group button {
+            background-color: #808080;
+            border: 1px solid 808080;
+            color: white;
+            padding: 10px 24px;
+            cursor: pointer;
+            width: 50%;
+            display: block;
+        }
+
+        .btn-group button:not(:last-child) {
+            border-bottom: none;
+        }
+
+        /* Clear floats (clearfix hack) */
+        .btn-group:after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        .btn-group button:hover {
+            background-color: #414040;
+        }
+    </style>
+    <script src="https://connect.reattendance.com/external_api.js"></script>
+
+</head>
+
+<body>
+
+    <div class="row">
+        <div class="column left">
+            <div id=meet></div>
+        </div>
+        <div class="column right">
+            <div class="btn-group">
+                <button onclick="api.executeCommand('toggleAudio')">Mute/Unmute Mic</button>
+                <button onclick="api.executeCommand('muteEveryone')">Mute All</button>
+                <button onclick="api.executeCommand('toggleVideo')">Stop/Start Cam</button>
+                <button onclick="alert('This one is tricky and should be customized according to need')">Cam/Mic</button>
+                <button onclick="api.executeCommand('toggleShareScreen')">Share Screen</button>
+                <button id="stream-btn" onclick="streamHandler()">Start Steam</button>
+            </div>
+            <div>
+                <span id="streamingResponseMsg"></span>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const domain = "connect.reattendance.com";
+    var isStreamOn = false;
+    const options = {
+        roomName: "iframeexample",
+        width: 800,
+        height: 480,
+        parentNode: document.querySelector('#meet'),
+        configOverwrite: {},
+        interfaceConfigOverwrite: { TOOLBAR_BUTTONS: [] },
+        jwt: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6L2dyYXZhdGFyLmNvbS9hdmF0YXIvYWJjMTIzIiwibmFtZSI6InJlYXR0ZW5kYW5jZSBUZXN0IiwiZW1haWwiOiJ0ZXN0QHJlYXR0ZW5kYW5jZS5jb20iLCJpZCI6ImFjZGJzLWF4c3F3LXNkc2RkLXVveWRnIn0sImdyb3VwIjoiYTEyMy0xMjMtNDU2LTc4OSJ9LCJhdWQiOiJyZWF0dGVuZGFuY2Vjb25uZWN0IiwiaXNzIjoicmVhdHRlbmRhbmNlY29ubmVjdCIsInN1YiI6ImNvbm5lY3QucmVhdHRlbmRhbmNlLmNvbSIsInJvb20iOiIqIiwibW9kZXJhdG9yIjp0cnVlfQ.HtYaJD6Q7V6lkClElKyisfZv7vKL4TSYx72kn0-5K-o'
+    }
+    const api = new JitsiMeetExternalAPI(domain, options);
+    api.addEventListener(`videoConferenceJoined`, () => {
+        const listener = ({ enabled }) => {
+            api.removeEventListener(`tileViewChanged`, listener);
+
+            if (!enabled) {
+                api.executeCommand(`toggleTileView`);
+            }
+        };
+    });
+
+   
+
+    function streamHandler() {
+        try {
+            if (!isStreamOn) {
+                document.getElementById("streamingResponseMsg").innerHTML = "Starting streaming...";
+                api.executeCommand('startRecording', {
+                    mode: 'stream', //recording mode, either `file` or `stream`.
+                    rtmpStreamKey: '', //the RTMP stream key.
+                    youtubeStreamKey: 'rtmp:\/\/18.133.66.241/norecord/stream-key', //the youtube stream key.
+                });
+            } else {
+                document.getElementById("streamingResponseMsg").innerHTML = "Stopping streaming...";
+                api.executeCommand('stopRecording', 'stream');
+            }
+
+        }
+        catch (e){
+            if (isStreamOn){
+                document.getElementById("streamingResponseMsg").innerHTML = "Error while stopping stream.";
+                console.log("Exception while stopping stream.", e);
+            }else{
+                document.getElementById("streamingResponseMsg").innerHTML = "Error while starting stream.";
+                console.log("Exception while starting stream.", e);
+
+            }    
+            this.isStreamOn = false;
+         }
+    };
+
+    api.addEventListener("recordingStarted", () => {
+        document.getElementById("stream-btn").innerHTML="Stop Streaming";
+        document.getElementById("streamingResponseMsg").innerHTML = "Stream is on";
+        this.isStreamOn = true;
+        console.log("Example Stream On", this.isStreamOn);
+        });
+
+        api.addEventListener("recordingStopped", () => {
+        document.getElementById("stream-btn").innerHTML="Start Streaming";
+        document.getElementById("streamingResponseMsg").innerHTML = "Stream is off";
+        console.log("Example Stream Off", this.isStreamOn);
+        this.isStreamOn = false;
+    });
+
+    window.onerror = function(error, url, line) {
+       console.log("Global Error:", error);
+    };
+
+
+</script>
+
+</html>
