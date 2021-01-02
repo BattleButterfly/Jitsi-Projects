@@ -62,7 +62,7 @@
             background-color: #414040;
         }
     </style>
-    <script src="https://connect.reattendance.com/external_api.js"></script>
+    <script src="https://connect.reattendance.com/external_api.js"></script>  <!-- Include the script from here. It should be included in your jitsi installation. -->
 
 </head>
 
@@ -74,12 +74,12 @@
         </div>
         <div class="column right">
             <div class="btn-group">
-                <button onclick="api.executeCommand('toggleAudio')">Mute/Unmute Mic</button>
-                <button onclick="api.executeCommand('muteEveryone')">Mute All</button>
-                <button onclick="api.executeCommand('toggleVideo')">Stop/Start Cam</button>
+                <button onclick="api.executeCommand('toggleAudio')">Mute/Unmute Mic</button>    <!-- You can add buttons like this ad infinitum.-->
+                <button onclick="api.executeCommand('muteEveryone')">Mute All</button>          <!-- As for what you can do with them;-->
+                <button onclick="api.executeCommand('toggleVideo')">Stop/Start Cam</button>     <!-- check https://jitsi.github.io/handbook/docs/dev-guide/dev-guide-iframe -->
                 <button onclick="alert('This one is tricky and should be customized according to need')">Cam/Mic</button>
                 <button onclick="api.executeCommand('toggleShareScreen')">Share Screen</button>
-                <button id="stream-btn" onclick="streamHandler()">Start Steam</button>
+                <button id="stream-btn" onclick="streamHandler()">Start Steam</button>          <!-- I've made a function here.-->
             </div>
             <div>
                 <span id="streamingResponseMsg"></span>
@@ -88,18 +88,19 @@
     </div>
 </body>
 <script>
-    const domain = "connect.reattendance.com";
-    var isStreamOn = false;
+    const domain = "your.domain.here"; //Here goes your domain where the meeting takes place.
+    var isStreamOn = false; //This is a variable I've defined to use later.
     const options = {
-        roomName: "iframeexample",
-        width: 800,
-        height: 480,
-        parentNode: document.querySelector('#meet'),
-        configOverwrite: {},
-        interfaceConfigOverwrite: { TOOLBAR_BUTTONS: [] },
-        jwt: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6L2dyYXZhdGFyLmNvbS9hdmF0YXIvYWJjMTIzIiwibmFtZSI6InJlYXR0ZW5kYW5jZSBUZXN0IiwiZW1haWwiOiJ0ZXN0QHJlYXR0ZW5kYW5jZS5jb20iLCJpZCI6ImFjZGJzLWF4c3F3LXNkc2RkLXVveWRnIn0sImdyb3VwIjoiYTEyMy0xMjMtNDU2LTc4OSJ9LCJhdWQiOiJyZWF0dGVuZGFuY2Vjb25uZWN0IiwiaXNzIjoicmVhdHRlbmRhbmNlY29ubmVjdCIsInN1YiI6ImNvbm5lY3QucmVhdHRlbmRhbmNlLmNvbSIsInJvb20iOiIqIiwibW9kZXJhdG9yIjp0cnVlfQ.HtYaJD6Q7V6lkClElKyisfZv7vKL4TSYx72kn0-5K-o'
+        roomName: "iframeexample", //This is the name of the room. Quite obvious.
+        width: 800,                //Well, you know.
+        height: 480,                //Same as above, just vertical.
+        parentNode: document.querySelector('#meet'), //Now, you declare here which element should parent your stream.
+        configOverwrite: {}, //You can turn on or off config elements with this prop.
+        interfaceConfigOverwrite: { TOOLBAR_BUTTONS: [] },  //You can turn on or off interface elements with this prop. check https://jitsi.github.io/handbook/docs/dev-guide/dev-guide-iframe for details
+        jwt: 'yourtokenhere' //Here, you should pass a JWT token for authorization purposes. If you're using jitsi-token-moderation or simiar, make sure the token you pass can start streams
     }
-    const api = new JitsiMeetExternalAPI(domain, options);
+    const api = new JitsiMeetExternalAPI(domain, options); //This is where the iframe is actually constructed
+    //The function below turns on the Tile View everytime a participant joins. Practically it makes Tile View the default mode
     api.addEventListener(`videoConferenceJoined`, () => {
         const listener = ({ enabled }) => {
             api.removeEventListener(`tileViewChanged`, listener);
@@ -116,13 +117,15 @@
         try {
             if (!isStreamOn) {
                 document.getElementById("streamingResponseMsg").innerHTML = "Starting streaming...";
+                //The function below starts the stream or recording, according to its "mode"
                 api.executeCommand('startRecording', {
                     mode: 'stream', //recording mode, either `file` or `stream`.
-                    rtmpStreamKey: '', //the RTMP stream key.
-                    youtubeStreamKey: 'rtmp:\/\/18.133.66.241/norecord/stream-key', //the youtube stream key.
+                    rtmpStreamKey: '', //This where you *should* put your favoured rtmp stream server along with your key, like "rtmp:\/\/some.address/norecord/stream-key"
+                    youtubeStreamKey: 'rtmp:\/\/some.address/norecord/stream-key', //the youtube stream key.
                 });
             } else {
                 document.getElementById("streamingResponseMsg").innerHTML = "Stopping streaming...";
+                //The function below stops the stream or recording, according to the string you pass. Official guide shows an object, while it should be a string
                 api.executeCommand('stopRecording', 'stream');
             }
 
